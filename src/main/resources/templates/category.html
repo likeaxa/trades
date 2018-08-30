@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:v-on="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>分类管理</title>
+
+    <!-- Vue.js 开发环境版本，包含了有帮助的命令行警告 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <!--  axios  -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <link rel="icon" type="image/x-icon" href="http://97.64.28.21:8066/picture/icon.jpg"/>
+
+    <style>
+        table a {
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body onload="init()">
+
+<div id="cate">
+    <!--置顶导航-->
+    <nav class="navbar  navbar-inverse">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="/admin/cate">分类管理</a></li>
+                    <li><a href="/admin/use/">用户管理</a></li>
+                    <li><a href="/admin/exch">订单管理</a></li>
+                </ul>
+
+                <!--<ul class="nav navbar-nav navbar-right">-->
+
+                <!--<form class="navbar-form navbar-left">-->
+                <!--<div class="form-group">-->
+                <!--<input type="text" class="form-control" placeholder="Search"/>-->
+                <!--</div>-->
+                <!--<button type="submit" class="btn btn-success">搜索</button>-->
+                <!--</form>-->
+                <!--</ul>-->
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+    <!--路径导航-->
+    <div style="">
+        <ol class="breadcrumb">
+            <li class="active">分类管理</li>
+        </ol>
+    </div>
+
+
+    <!--table-->
+    <div class="container">
+        <table class="table table-bordered table-hover">
+            <thead>
+            <tr style="background-color: #cccccc">
+                <th>ID</th>
+                <th>分类名称</th>
+                <th>商品管理</th>
+                <th>编辑</th>
+                <th>删除</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="ca in cates.list">
+                <td>{{ca.id}}</td>
+                <td>{{ca.cate_name}}</td>
+                <td>
+                    <a :href="'/admin/pro/?cate_id='+ca.id"><span class="glyphicon glyphicon-shopping-cart"> </span></a>
+                </td>
+                <td>
+                    <a :href="'/admin/cateEdit/?cate_id='+ca.id"><span class="glyphicon glyphicon-pencil"></span></a>
+                </td>
+                <td>
+                    <a v-on:click="deletes(ca.id)"><span class="glyphicon glyphicon-trash"></span></a>
+                </td>
+            </tr>
+
+            </tbody>
+        </table>
+        <!--分页-->
+        <div class="container" id="fenye" align="center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination ">
+                    <li>
+                        <a v-on:click="getAll(cates.firstPage)">首页</a>
+                    </li>
+                    <li>
+                        <a v-on:click="getAll(cates.prePage)">上一页</a>
+                    </li>
+                    <li v-for="p in cates.navigatepageNums">
+                        <a v-on:click="getAll(p)">{{p}}</a>
+                    </li>
+                    <li>
+                        <a v-on:click="getAll(cates.nextPage)">下一页</a>
+                    </li>
+                    <li>
+                        <a v-on:click="getAll(cates.lastPage)">尾页</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <!--增加分类-->
+    <div class="container" style="width: 26%;margin-top: 30px;margin-bottom: 30px">
+
+        <table class="table table-bordered">
+            <from>
+                <caption style="background-color: #cccccc">新增分类</caption>
+                <tbody>
+                <tr>
+                    <th>分类名称</th>
+                    <td><input id="cate_name" type="text"
+                               class="form-control"/></td>
+                </tr>
+
+                <!--<tr>-->
+                <!--<td colspan="2">-->
+                <!--<input name="file" type="file" accept="image/png,image/gif,image/jpeg" class="form-control"/>-->
+                <!--</td>-->
+                <!--</tr>-->
+
+                <tr>
+                    <td colspan="2" align="center">
+                        <button class="btn btn-success" v-on:click="addcate">Submit</button>
+                    </td>
+                </tr>
+                </tbody>
+            </from>
+        </table>
+
+
+    </div>
+</div>
+
+<script>
+    var v = new Vue({
+        el: '#cate',
+        data: {
+            cates: []
+        },
+        methods: {
+            getAll: function (start) { //mounted　表示这个 Vue 对象加载成功了
+                //alert(start);
+                var self = this;
+                axios.get("/admin/category", {//下面是请求url所需要的参数
+                    params: {
+                        start: start
+                    }
+                }).then(function (response) {
+                    self.cates = response.data; //此时还是字符串
+                })
+            },
+            addcate: function () {
+                var cate_name = document.getElementById('cate_name').value;
+                var url = "/admin/category";
+                axios.put(url, {
+                    cate_name: cate_name
+                }).then(function (response) {
+                    console.log(response.data);
+                    if (response.data == "ok") {
+                        //添加成功后重新加载页面
+                        alert("添加成功");
+                        window.location.reload();
+                    }
+                    else {
+                        alert(response.data);
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            },
+            deletes: function (cate_id) {
+                //alert(cate_id);
+                var url = "/admin/category";
+                axios.delete(url, {
+                    params: {
+                        cate_id: cate_id
+                    }
+                }).then(function (response) {
+                    console.log(response.data);
+                    if (response.data == "ok") {
+                        //添加成功后重新加载页面
+                        alert("删除成功");
+                        window.location.reload();
+                    }
+                    else {
+                        alert(response.data);
+                    }
+                }).catch(function (error) {
+                    console.log(error);
+                });
+            }
+        }
+    });
+
+    function init() {
+        v.getAll(1);
+    }
+</script>
+</body>
+</html>

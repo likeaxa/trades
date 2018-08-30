@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-on="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>商品管理</title>
+    <!-- Vue.js 开发环境版本，包含了有帮助的命令行警告 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <!--  axios  -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+
+
+    <style>
+        table a {
+            color: #6c757d;
+        }
+    </style>
+
+    <link rel="icon" type="image/x-icon" href="http://97.64.28.21:8066/picture/icon.jpg"/>
+</head>
+<body onload="init()">
+<div>
+    <!--导航条-->
+
+    <!--置顶导航-->
+    <nav class="navbar  navbar-inverse">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+
+
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="/admin/cate/">分类管理</a></li>
+                    <li><a href="/admin/use/">用户管理</a></li>
+                    <li><a href="/admin/exch">订单管理</a></li>
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+
+                    <div class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input id="pro_name" type="text" class="form-control" placeholder="Search"/>
+                        </div>
+                        <button class="btn btn-success" onclick="search()">搜索</button>
+                    </div>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+
+
+    <!--路径导航-->
+    <div style="">
+        <ol class="breadcrumb">
+
+            <li class="active">商品管理</li>
+        </ol>
+    </div>
+
+    <!--table-->
+    <div class="container" style="" id="pro">
+        <table class="table table-bordered    table-hover">
+            <thead>
+            <tr style="background-color:  #cacaca">
+
+                <th>编号</th>
+                <th>商品名称</th>
+
+                <th>价格</th>
+                <th>图片管理</th>
+                <th>删除</th>
+            </tr>
+            </thead>
+            <tbody>
+
+            <tr v-for="pro in pros.list">
+                <td>{{pro.id}}</td>
+                <td>{{pro.name}}</td>
+
+                <td>{{pro.price}}</td>
+
+                <td><a :href="'/admin/pict/?pid='+pro.id"><span class="glyphicon glyphicon-picture"></span></a></td>
+
+                <td><a :href="'/admin/pro/?product_id='+pro.id"><span class="glyphicon glyphicon-trash"></span></a></td>
+            </tr>
+
+
+            </tbody>
+
+
+        </table>
+        <!--分页-->
+        <div class="container" align="center">
+            <nav aria-label="Page navigation" class="container">
+                <ul class="pagination container ">
+
+
+                    <li>
+                        <a v-on:click="init();window.location.reload();" :href="'#start='+pros.firstPage">首页</a>
+                    </li>
+                    <li>
+                        <a v-on:click="init();window.location.reload();" :href="'#start='+pros.prePage">上一页</a>
+                    </li>
+                    <li v-for="p in pros.pages">
+                        <a v-on:click="init();window.location.reload();" :href="'#start='+p">
+                            {{p}}</a>
+                    </li>
+                    <li>
+                        <a v-on:click="init(pros.nextPage);window.location.reload();" :href="'#start='+pros.nextPage">下一页</a>
+                    </li>
+                    <li>
+                        <a v-on:click="init();window.location.reload();" :href="'#start='+pros.lastPage">尾页</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+    <script>
+        var v = new Vue({
+            el: '#pro',
+            data: {
+                pros: []
+            },
+            methods: {
+                getPros: function (cate_id, product_name, start) {
+                    var self = this;
+                    axios.get("/admin/product", {
+                        params: {
+                            cate_id: cate_id,
+                            product_name: product_name,
+                            start: start
+                        }
+                    }).then(function (response) {
+                        self.pros = response.data; //此时还是字符串
+                    })
+                },
+                delete: function (url, cate_id) {
+                    axios.delete(url).then(function (response) {
+                        var da = response.data;
+                        if (da == "ok") {
+                            alert("删除成功");
+                            location.href = "/admin/pro/cate_id=" + cate_id;
+                        }
+                        else {
+                            alert("删除失败");
+                        }
+                    })
+                }
+            }
+        });
+
+        function search() {
+            var product_name = document.getElementById("pro_name").value;
+            alert(product_name);
+
+            v.getPros(1, product_name, 1);
+        }
+
+        function init() {
+
+
+            var start = 1;
+            var url = location.href;
+            url = url.replace("#", "=");
+            //alert(url);
+            url = url.split("=");
+            //var start=document.getElementById();
+            var cate_id = url[1];
+            if (url[3] != null) {
+                start = url[3];
+            }
+            var delt = location.search.split("=");
+            if (delt[0] == "?product_id") {
+                v.delete("/admin/product?product_id=" + delt[1], start);
+            }
+            //alert(cate_id);
+            // alert(start);
+            v.getPros(cate_id, "-1", start);
+        }
+
+    </script>
+
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>用户管理</title>
+    <!-- Vue.js 开发环境版本，包含了有帮助的命令行警告 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <!--  axios  -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+
+
+    <style>
+        table a {
+            color: #6c757d;
+        }
+    </style>
+    <link rel="icon" type="image/x-icon" href="http://97.64.28.21:8066/picture/icon.jpg"/>
+</head>
+<body onload="init()">
+<div>
+    <!--置顶导航-->
+    <nav class="navbar  navbar-inverse">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <!-- Collect the nav links, forms, and other content for toggling -->
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li><a href="/admin/cate">分类管理</a></li>
+                    <li><a href="/admin/use/">用户管理</a></li>
+                    <li><a href="/admin/exch">订单管理</a></li>
+
+                </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+
+                    <div class="navbar-form navbar-left">
+                        <div class="form-group">
+                            <input id="name" type="text" class="form-control" placeholder="Search"/>
+                        </div>
+                        <button onclick="search()" class="btn btn-success">搜索</button>
+                    </div>
+                </ul>
+            </div><!-- /.navbar-collapse -->
+        </div><!-- /.container-fluid -->
+    </nav>
+    <!--路径导航-->
+    <div style="">
+        <ol class="breadcrumb">
+            <li class="active">用户管理</li>
+        </ol>
+    </div>
+
+
+    <!--table-->
+    <div class="container" id="user">
+
+        <table class="table table-bordered table-hover">
+
+            <tr style="background-color: #cccccc">
+                <th>ID</th>
+                <th>用户名称</th>
+                <th>用户手机</th>
+                <th>用户地址</th>
+
+                <th>删除</th>
+                <!--<a :href="'/admin/user/?user_id'+us.id ">-->
+            </tr>
+            <tr v-for="us in users.list">
+                <th>{{us.id}}</th>
+                <th>{{us.username}}</th>
+                <th>{{us.phone}}</th>
+                <th>{{us.address}}</th>
+                <th><a :href="'/admin/use/?user_id='+us.id">删除用户</a></th>
+            </tr>
+        </table>
+
+        <div class="container" align="center">
+            <nav aria-label="Page navigation">
+                <ul class="pagination ">
+
+                    <li>
+                        <a :href="'/admin/use/?start='+users.firstPage">首页</a>
+                    </li>
+                    <li>
+                        <a :href="'/admin/use/?start='+users.prePage">上一页</a>
+                    </li>
+                    <li v-for="p in users.pages">
+                        <a :href="'/admin/use/?start='+p">{{p}}</a>
+                    </li>
+                    <li>
+                        <a :href="'/admin/use/?start='+users.nextPage">下一页</a>
+                    </li>
+                    <li>
+                        <a :href="'/admin/use/?start='+users.lastPage">尾页</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+    <script>
+        var v = new Vue({
+            el: '#user',
+            data: {
+                users: []
+            },
+            methods: {
+                getUsers: function (username, start) {
+                    var self = this;
+                    axios.get("/admin/user", {
+                        params: {
+                            username: username,
+                            start: start
+                        }
+                    }).then(function (response) {
+                        self.users = response.data; //此时还是字符串
+                    })
+                },
+                delete: function (url) {
+                    axios.delete(url).then(function (response) {
+                        var da = response.data;
+                        if (da == "ok") {
+                            alert("删除成功");
+                            location.href = "/admin/use/";
+                        }
+                        else {
+                            alert("删除失败");
+                        }
+                    })
+                }
+            }
+        });
+
+        function search() {
+
+            var username = document.getElementById("name").value;
+            if (username == null) {
+                username = "-1";
+            }
+            url = "/admin/user?username=" + username;
+            v.getUsers(username, 1);
+
+        }
+
+        function init() {
+
+            var start = 1;
+            //var
+            var url = location.search.split("=");
+            if (url[0] == "?start") {
+                start = url[1];
+            }
+            if (url[0] == "?user_id") {
+                v.delete("/admin/user?user_id=" + url[1]);
+            }
+            v.getUsers("-1", start);
+        }
+    </script>
+</div>
+</body>
+</html>

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>分类编辑</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <!-- Vue.js 开发环境版本，包含了有帮助的命令行警告 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <!--  axios  -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="http://97.64.28.21:8066/picture/icon.jpg"/>
+</head>
+<body onload="init()">
+
+
+<!--置顶导航-->
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse">
+    <div class="container-fluid">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+
+            <a class="navbar-brand" href="#"><span class="glyphicon glyphicon-home" style="font-size: 23px"> </span>
+            </a>
+
+        </div>
+
+        <!-- Collect the nav links, forms, and other content for toggling -->
+
+        <ul class="nav navbar-nav " style="float: right">
+
+            <li><a href="#">返回顶部</a></li>
+
+
+        </ul>
+
+
+    </div><!-- /.container-fluid -->
+</nav>
+
+
+<!--路径导航-->
+<div style="margin-top: 100px">
+    <ol class="breadcrumb">
+        <li><a href="category.html">分类管理</a></li>
+        <li><a href="product.html">产品管理</a></li>
+        <li class="active">编辑</li>
+    </ol>
+</div>
+<!--table-->
+<div class="container" style="width: 500px;margin-top: 50px" id="cate_edit">
+
+    <table class="table table-bordered">
+        <caption style="background-color: #cccccc">编辑</caption>
+        <tbody>
+        <tr>
+            <th>分类名称</th>
+            <td><input id="name" name="name" type="text"
+                       class="form-control" :value="cate.cate_name"/></td>
+        </tr>
+        <tr>
+            <td colspan="2" align="center">
+                <button class="btn btn-success" onclick="update()">Submit</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+<script>
+    var v = new Vue({
+        el: '#cate_edit',
+        data: {
+            cate: []
+        },
+        methods: {
+            getOneCategory: function (cate_id) {
+                var self = this;
+                axios.get("/admin/one_category", {
+                    params: {
+                        cate_id: cate_id
+                    }
+                }).then(function (response) {
+                    self.cate = response.data; //此时还是字符串
+                    // document.getElementById("cate_edit").innerHTML=self.cate.cate_name;
+                })
+            },
+            updateCate: function (cate_id, cate_name) {
+                var self = this;
+                axios.post("/admin/category", {
+
+                    id: cate_id,
+                    cate_name: cate_name
+
+                }).then(function (response) {
+                    if (response.data == "ok") {
+                        alert("修改成功");
+                    }
+                    else {
+                        alert("修改失败");
+                    }
+                })
+            }
+        }
+    });
+
+    function init() {
+        var url = location.search.split("=");
+
+        var cate_id = url[1];
+        //alert(cate_id);
+        v.getOneCategory(cate_id);
+
+    }
+
+    function update() {
+        var url = location.search.split("=");
+
+        var cate_id = url[1];
+        var cate_name = document.getElementById("name").value;
+        // alert(cate_name);
+        // alert(cate_id);
+        v.updateCate(cate_id, cate_name);
+    }
+</script>
+</body>
+</html>
